@@ -11,7 +11,7 @@ from pyrogram import Client, filters
 from pyrogram.parser import html as pyrogram_html
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.helper import custom_filters
-from bot import app
+from bot import app, IMG
 session = aiohttp.ClientSession()
 search_lock = asyncio.Lock()
 search_info = {False: dict(), True: dict()}
@@ -145,7 +145,7 @@ def searchhelp(update, context):
 • /sts <i>[search query]</i>
 • /sukebei <i>[search query]</i>
 '''
-    update.effective_message.reply_photo("https://telegra.ph/file/db03910496f06094f1f7a.jpg", help_string, parse_mode=ParseMode.HTML)
+    update.effective_message.reply_photo(IMG, help_string, parse_mode=ParseMode.HTML)
     
     
 SEARCHHELP_HANDLER = CommandHandler("tshelp", searchhelp)

@@ -10,7 +10,7 @@ import pytz
 import time
 from telegram import ParseMode
 from telegram.ext import CommandHandler, run_async
-from bot import dispatcher, updater, botStartTime, AUTHORIZED_CHATS
+from bot import dispatcher, updater, botStartTime, AUTHORIZED_CHATS, IMG
 from bot.helper.ext_utils import fs_utils
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import *
@@ -44,16 +44,17 @@ def stats(update, context):
             f'<b>CPU:</b> {cpuUsage}%\n' \
             f'<b>RAM:</b> {memory}%\n' \
             f'<b>Disk:</b> {disk}%'
-    update.effective_message.reply_photo("https://telegra.ph/file/db03910496f06094f1f7a.jpg", stats, parse_mode=ParseMode.HTML)
+    update.effective_message.reply_photo(IMG, stats, parse_mode=ParseMode.HTML)
 
 
 @run_async
 def start(update, context):
     start_string = f'''
-This bot can mirror all your links to Google drive!
+Hey! I am Asuna Chan. I can mirror all your links to Google drive!
+**Only works for @kirito6969 **
 Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
-    update.effective_message.reply_photo("https://telegra.ph/file/db03910496f06094f1f7a.jpg", start_string, parse_mode=ParseMode.MARKDOWN)
+    update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -67,7 +68,7 @@ def chat_list(update, context):
 def repo(update, context):
     bot.send_message(update.message.chat_id,
     reply_to_message_id=update.message.message_id,
-    text="Repo: https://github.com/breakdowns/slam-mirrorbot\nGroup: https://t.me/SlamMirrorSupport", disable_web_page_preview=True)
+    text="Repo: Nu repo. You go https://kirito1.ga", disable_web_page_preview=True)
 
 
 @run_async

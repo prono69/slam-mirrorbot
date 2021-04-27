@@ -28,6 +28,14 @@ load_dotenv('config.env')
 
 Interval = []
 
+K = ["https://telegra.ph/file/73158ecf12829ddf7c474.jpg",
+"https://telegra.ph/file/1ee75c6862ec5a326369e.jpg",
+"https://telegra.ph/file/22004288d1a66e5595b88.jpg",
+"https://telegra.ph/file/642d6e1cb8a0a39b90224.jpg",
+"https://telegra.ph/file/de1611deef4ce40b76516.jpg",
+"https://telegra.ph/file/f9518dd934bd14133e47f.jpg"]
+
+IMG = random.choice(K)
 
 def getConfig(name: str):
     return os.environ[name]
