@@ -51,7 +51,9 @@ def stats(update, context):
 def start(update, context):
     start_string = f'''
 Hey! I am Asuna Chan. I can mirror all your links to Google drive!
-**Only works for @kirito6969 **
+
+**ONLY WORKS FOR @kirito6969 **
+
 Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
     update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN)
