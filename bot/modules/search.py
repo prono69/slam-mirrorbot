@@ -142,8 +142,8 @@ def searchhelp(update, context):
 • /nyaa <i>[search query]</i>
 • /nyaasi <i>[search query]</i>
 
-• /sts <i>[search query]</i>
-• /sukebei <i>[search query]</i>
+• /sts <i>[search query]</i> (For hentai search 🌚)
+• /sukebei <i>[search query]</i> (For hentai search 🌚)
 '''
     update.effective_message.reply_photo(IMG, help_string, parse_mode=ParseMode.HTML)
     
