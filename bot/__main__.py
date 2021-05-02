@@ -8,7 +8,7 @@ from sys import executable
 from datetime import datetime
 import pytz
 import time
-from telegram import ParseMode
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, run_async
 from bot import dispatcher, updater, botStartTime, AUTHORIZED_CHATS, IMG
 from bot.helper.ext_utils import fs_utils
@@ -18,7 +18,7 @@ from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_tim
 from .helper.telegram_helper.filters import CustomFilters
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage
 
-now=datetime.now(pytz.timezone('Asia/Jakarta'))
+now=datetime.now(pytz.timezone('Asia/Kolkata'))
 
 
 @run_async
@@ -35,15 +35,15 @@ def stats(update, context):
     memory = psutil.virtual_memory().percent
     disk = psutil.disk_usage('/').percent
     stats = f'<b>Bot Uptime:</b> {currentTime}\n' \
-            f'<b>Start Time:</b> {current}\n' \
-            f'<b>Total disk space:</b> {total}\n' \
+            f'<b>Start Time:</b> <i>{current}</i>\n\n' \
+            f'💾Storage💾\n<b>Total disk space:</b> {total}\n' \
             f'<b>Used:</b> {used}  ' \
             f'<b>Free:</b> {free}\n\n' \
             f'📊Data Usage📊\n<b>Upload:</b> {sent}\n' \
             f'<b>Down:</b> {recv}\n\n' \
             f'<b>CPU:</b> {cpuUsage}%\n' \
             f'<b>RAM:</b> {memory}%\n' \
-            f'<b>Disk:</b> {disk}%'
+            f'<b>DISK:</b> {disk}%'
     update.effective_message.reply_photo(IMG, stats, parse_mode=ParseMode.HTML)
 
 
@@ -68,10 +68,11 @@ def chat_list(update, context):
 
 @run_async
 def repo(update, context):
-    bot.send_message(update.message.chat_id,
-    reply_to_message_id=update.message.message_id,
-    text="Repo: Nu repo. You go https://kirito1.ga", disable_web_page_preview=True)
-
+    button = [
+    [InlineKeyboardButton("Lit Repo", url=f"https://github.com/breakdowns/slam-mirrorbot")],
+    [InlineKeyboardButton("About Me", url=f"https://kirito1.ga")]]
+    reply_markup = InlineKeyboardMarkup(button)
+    update.effective_message.reply_photo(IMG, reply_markup=reply_markup)
 
 @run_async
 def restart(update, context):
