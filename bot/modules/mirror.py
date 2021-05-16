@@ -1,13 +1,14 @@
 import requests
 from telegram.ext import CommandHandler, run_async
 from telegram import InlineKeyboardMarkup
-
-from bot import Interval, INDEX_URL, LOGGER, MEGA_KEY, BUTTON_THREE_NAME, BUTTON_THREE_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BLOCK_MEGA_LINKS
+ 
+from bot import Interval, INDEX_URL, BUTTON_THREE_NAME, BUTTON_THREE_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, BLOCK_MEGA_FOLDER, BLOCK_MEGA_LINKS
 from bot import dispatcher, DOWNLOAD_DIR, DOWNLOAD_STATUS_UPDATE_INTERVAL, download_dict, download_dict_lock, SHORTENER, SHORTENER_API
 from bot.helper.ext_utils import fs_utils, bot_utils
-from bot.helper.ext_utils.bot_utils import setInterval
+from bot.helper.ext_utils.bot_utils import setInterval, get_mega_link_type
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException, NotSupportedExtractionArchive
 from bot.helper.mirror_utils.download_utils.aria2_download import AriaDownloadHelper
+from bot.helper.mirror_utils.download_utils.mega_downloader import MegaDownloadHelper
 from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_link_generator
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
 from bot.helper.mirror_utils.status_utils import listeners
@@ -19,17 +20,16 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import *
 from bot.helper.telegram_helper import button_build
-from bot.helper.mirror_utils.download_utils.mega_download import MegaDownloader
 import urllib
 import pathlib
 import os
 import subprocess
 import threading
 import re
-
+ 
 ariaDlManager = AriaDownloadHelper()
 ariaDlManager.start_listener()
-
+ 
 class MirrorListener(listeners.MirrorListeners):
     def __init__(self, bot, update, pswd, isTar=False, tag=None, extract=False):
         super().__init__(bot, update)
@@ -37,14 +37,14 @@ class MirrorListener(listeners.MirrorListeners):
         self.tag = tag
         self.extract = extract
         self.pswd = pswd
-
+ 
     def onDownloadStarted(self):
         pass
-
+ 
     def onDownloadProgress(self):
         # We are handling this on our own!
         pass
-
+ 
     def clean(self):
         try:
             Interval[0].cancel()
@@ -52,7 +52,7 @@ class MirrorListener(listeners.MirrorListeners):
             delete_all_messages()
         except IndexError:
             pass
-
+ 
     def onDownloadComplete(self):
         with download_dict_lock:
             LOGGER.info(f"Download completed: {download_dict[self.uid].name()}")
@@ -93,7 +93,7 @@ class MirrorListener(listeners.MirrorListeners):
                 LOGGER.info(
                     f'got path : {path}'
                 )
-
+ 
             except NotSupportedExtractionArchive:
                 LOGGER.info("Not any valid archive, uploading file as it is.")
                 path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
@@ -111,7 +111,7 @@ class MirrorListener(listeners.MirrorListeners):
             download_dict[self.uid] = upload_status
         update_all_messages()
         drive.upload(up_name)
-
+ 
     def onDownloadError(self, error):
         error = error.replace('<', ' ')
         error = error.replace('>', ' ')
@@ -137,16 +137,16 @@ class MirrorListener(listeners.MirrorListeners):
             self.clean()
         else:
             update_all_messages()
-
+ 
     def onUploadStarted(self):
         pass
-
+ 
     def onUploadProgress(self):
         pass
-
+ 
     def onUploadComplete(self, link: str, size):
         with download_dict_lock:
-            msg = f'<b>📂 Filename: </b><code>{download_dict[self.uid].name()}</code>\n\n<b>📀 Size: </b><code>{size}</code>'
+            msg = f'<b>📂 Filename: </b><code>{download_dict[self.uid].name()}</code>\n<b>📀 Size: </b><code>{size}</code>'
             buttons = button_build.ButtonMaker()
             if SHORTENER is not None and SHORTENER_API is not None:
                 surl = requests.get('https://{}/api?api={}&url={}&format=text'.format(SHORTENER, SHORTENER_API, link)).text
@@ -175,7 +175,7 @@ class MirrorListener(listeners.MirrorListeners):
             else:
                 uname = f'<a href="tg://user?id={self.message.from_user.id}">{self.message.from_user.first_name}</a>'
             if uname is not None:
-                msg += f'\n\n<b>cc</b>: {uname}'
+                msg += f'\n\n<b>cc :</b> {uname}'
             try:
                 fs_utils.clean_download(download_dict[self.uid].path())
             except FileNotFoundError:
@@ -187,7 +187,7 @@ class MirrorListener(listeners.MirrorListeners):
             self.clean()
         else:
             update_all_messages()
-
+ 
     def onUploadError(self, error):
         e_str = error.replace('<', '').replace('>', '')
         with download_dict_lock:
@@ -202,7 +202,7 @@ class MirrorListener(listeners.MirrorListeners):
             self.clean()
         else:
             update_all_messages()
-
+ 
 def _mirror(bot, update, isTar=False, extract=False):
     mesg = update.message.text.split('\n')
     message_args = mesg[0].split(' ')
@@ -245,7 +245,7 @@ def _mirror(bot, update, isTar=False, extract=False):
             if i is not None:
                 file = i
                 break
-
+ 
         if not bot_utils.is_url(link) and not bot_utils.is_magnet(link) or len(link) == 0:
             if file is not None:
                 if file.mime_type != "application/x-bittorrent":
@@ -263,40 +263,44 @@ def _mirror(bot, update, isTar=False, extract=False):
     if not bot_utils.is_url(link) and not bot_utils.is_magnet(link):
         sendMessage('No download source provided', bot, update)
         return
-
+ 
     try:
         link = direct_link_generator(link)
     except DirectDownloadLinkException as e:
         LOGGER.info(f'{link}: {e}')
     listener = MirrorListener(bot, update, pswd, isTar, tag, extract)
-    if bot_utils.is_mega_link(link) and MEGA_KEY is not None and not BLOCK_MEGA_LINKS:
-        mega_dl = MegaDownloader(listener)
-        mega_dl.add_download(link, f'{DOWNLOAD_DIR}{listener.uid}/')
-        sendStatusMessage(update, bot)
-    elif bot_utils.is_mega_link(link) and BLOCK_MEGA_LINKS:
-        sendMessage("Mega links are blocked. Dont try to mirror mega links.", bot, update)
+    if bot_utils.is_mega_link(link):
+        link_type = get_mega_link_type(link)
+        if link_type == "folder" and BLOCK_MEGA_FOLDER:
+            sendMessage("Mega folder are blocked!", bot, update)
+        elif BLOCK_MEGA_LINKS:
+            sendMessage("Mega links are blocked!", bot, update)
+        else:
+            mega_dl = MegaDownloadHelper()
+            mega_dl.add_download(link, f'{DOWNLOAD_DIR}/{listener.uid}/', listener)
+            sendStatusMessage(update, bot)
     else:
-        ariaDlManager.add_download(link, f'{DOWNLOAD_DIR}{listener.uid}/', listener, name)
+        ariaDlManager.add_download(link, f'{DOWNLOAD_DIR}/{listener.uid}/', listener, name)
         sendStatusMessage(update, bot)
     if len(Interval) == 0:
         Interval.append(setInterval(DOWNLOAD_STATUS_UPDATE_INTERVAL, update_all_messages))
-
-
+ 
+ 
 @run_async
 def mirror(update, context):
     _mirror(context.bot, update)
-
-
+ 
+ 
 @run_async
 def tar_mirror(update, context):
     _mirror(context.bot, update, True)
-
-
+ 
+ 
 @run_async
 def unzip_mirror(update, context):
     _mirror(context.bot, update, extract=True)
-
-
+ 
+ 
 mirror_handler = CommandHandler(BotCommands.MirrorCommand, mirror,
                                 filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
 tar_mirror_handler = CommandHandler(BotCommands.TarMirrorCommand, tar_mirror,

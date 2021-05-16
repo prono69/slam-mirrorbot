@@ -252,9 +252,9 @@ def manga(update: Update, _):
 @run_async
 def weebhelp(update, context):
     help_string = '''
-• `/anime`*:* search anime
-• `/character`*:* search character
-• `/manga`*:* search manga
+• `/anime`*:* search Anime
+• `/character`*:* search Character
+• `/manga`*:* search Manga
 '''
     update.effective_message.reply_photo(IMG, help_string, parse_mode=ParseMode.MARKDOWN)
 

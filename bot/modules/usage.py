@@ -1,16 +1,16 @@
 import math
-
+ 
 import requests
 import heroku3
-
+ 
 from bot import dispatcher, HEROKU_APP_NAME, HEROKU_API_KEY
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import sendMessage
 from telegram import update
 from telegram.ext import run_async, CommandHandler
-
-
+ 
+ 
 @run_async
 def dyno_usage(update, context):
     heroku_api = "https://api.heroku.com"
@@ -47,7 +47,8 @@ def dyno_usage(update, context):
             minutes_remain = quota_remain / 60
             hours = math.floor(minutes_remain / 60)
             minutes = math.floor(minutes_remain % 60)
-            
+            day = math.floor(hours / 24)
+ 
             """App Quota."""
             Apps = result["apps"]
             for apps in Apps:
@@ -58,22 +59,25 @@ def dyno_usage(update, context):
             else:
                 AppQuotaUsed = 0
                 AppPercent = 0
-
+ 
             AppHours = math.floor(AppQuotaUsed / 60)
             AppMinutes = math.floor(AppQuotaUsed % 60)
             
             sendMessage(
-                f"<b>Dyno Usage for</b> <code>{app.name}</code> :\n"
+                f"<b>Dyno Usage for</b> <code>{app.name}</code>:\n"
                 f"• <code>{AppHours}</code> <b>Hours and</b> <code>{AppMinutes}</code> <b>Minutes - {AppPercent}%</b>\n\n"
-                "<b>Dyno Remaining this month :</b>\n"
-                f"• <code>{hours}</code> <b>Hours and</b> <code>{minutes}</code> <b>Minutes - {quota_percent}%</b>\n\n#LazyAF_Geng",
+                "<b>Dyno Remaining this month:</b>\n"
+                f"• <code>{hours}</code> <b>Hours and</b> <code>{minutes}</code> <b>Minutes - {quota_percent}%</b>\n\n"
+                "<b>Estimated Dyno Expired:</b>\n"
+                f"• <code>{day}</code> <b>Days</b>",
                 context.bot,
                 update
             )
             return True
-
-
+ 
+ 
 dyno_usage_handler = CommandHandler(command=BotCommands.UsageCommand, callback=dyno_usage,
                                     filters=CustomFilters.owner_filter)
                                     
 dispatcher.add_handler(dyno_usage_handler)
+ 
