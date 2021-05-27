@@ -8,12 +8,13 @@ from sys import executable
 from datetime import datetime
 import pytz
 import time
-from telegram import ParseMode, BotCommand, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ParseMode, BotCommand, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, run_async
-from bot import dispatcher, updater, botStartTime, AUTHORIZED_CHATS, IMG, SUDO_USER
+from bot import dispatcher, updater, botStartTime, IMG
 from bot.helper.ext_utils import fs_utils
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import *
+from bot.helper.telegram_helper import button_build
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.telegram_helper.filters import CustomFilters
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage, mediainfo
@@ -36,7 +37,7 @@ def stats(update, context):
     disk = psutil.disk_usage('/').percent
     stats = f'<b>Bot Uptime:</b> {currentTime}\n' \
             f'<b>Start Time:</b> <i>{current}</i>\n\n' \
-            f'💾Storage💾\n<b>Total disk space:</b> {total}\n' \
+            f'💾Storage💾\n<b>Total Disk Space:</b> {total}\n' \
             f'<b>Used:</b> {used}  ' \
             f'<b>Free:</b> {free}\n\n' \
             f'📊Data Usage📊\n<b>Upload:</b> {sent}\n' \
@@ -50,29 +51,17 @@ def stats(update, context):
 @run_async
 def start(update, context):
     start_string = f'''
-Hey! I am Asuna Chan. I can mirror all your links to Google drive!
+Hey! I am Asuna Chan 😽. I can mirror all your links to Google drive!
 
-**ONLY WORKS FOR @kirito6969 **
+**ONLY WORKS FOR @kirito6969**
 
 Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
-    update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN)
-
-
-@run_async
-def chat_list(update, context):
-    chat_list = sudo = ''
-    chat_list += '\n'.join(str(id) for id in AUTHORIZED_CHATS)
-    sudo += '\n'.join(str(id) for id in SUDO_USER)
-    sendMessage(f'<b><u>Authorized Chats</u></b>\n{chat_list}\n\n<b><u>Sudo Users</u></b>\n{sudo}', context.bot, update)
-
-@run_async
-def repo(update, context):
-    button = [
-    [InlineKeyboardButton("Lit Repo", url=f"https://github.com/breakdowns/slam-mirrorbot")],
-    [InlineKeyboardButton("About Me", url=f"https://kirito1.ga")]]
-    reply_markup = InlineKeyboardMarkup(button)
-    update.effective_message.reply_photo(IMG, reply_markup=reply_markup)
+    buttons = button_build.ButtonMaker()
+    buttons.buildbutton("Website", "https://kirito1.ga")
+    buttons.buildbutton("Me", "https://t.me/kirito6969")
+    reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
+    update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
 
 @run_async
 def restart(update, context):
@@ -103,13 +92,15 @@ def bot_help(update, context):
     help_string = f'''
 /{BotCommands.HelpCommand}: To get this message
  
-/{BotCommands.MirrorCommand} [download_url][magnet_link]: Start mirroring the link to Google Drive
+/{BotCommands.MirrorCommand} [download_url][magnet_link]: Start mirroring the link to Google Drive.
  
 /{BotCommands.UnzipMirrorCommand} [download_url][magnet_link]: Starts mirroring and if downloaded file is any archive, extracts it to Google Drive
  
 /{BotCommands.TarMirrorCommand} [download_url][magnet_link]: Start mirroring and upload the archived (.tar) version of the download
  
 /{BotCommands.CloneCommand}: Copy file/folder to Google Drive
+ 
+/{BotCommands.DeleteCommand} [link]: Delete file from Google Drive (Only Owner & Sudo)
  
 /{BotCommands.WatchCommand} [youtube-dl supported link]: Mirror through youtube-dl. Click /{BotCommands.WatchCommand} for more help.
  
@@ -125,15 +116,19 @@ def bot_help(update, context):
  
 /{BotCommands.AuthorizeCommand}: Authorize a chat or a user to use the bot (Can only be invoked by Owner & Sudo of the bot)
  
-/{BotCommands.AuthListCommand}: See Authorized list & Sudo User (Can only be invoked by Owner & Sudo of the bot)
+/{BotCommands.UnAuthorizeCommand}: Unauthorize a chat or a user to use the bot (Can only be invoked by Owner & Sudo of the bot)
+ 
+/{BotCommands.AuthorizedUsersCommand}: Show authorized users (Only Owner & Sudo)
+ 
+/{BotCommands.AddSudoCommand}: Add sudo user (Only Owner)
+ 
+/{BotCommands.RmSudoCommand}: Remove sudo users (Only Owner)
  
 /{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports
  
 /{BotCommands.UsageCommand}: To see Heroku Dyno Stats (Owner & Sudo only).
  
 /{BotCommands.SpeedCommand}: Check Internet Speed of the Host
- 
-/{BotCommands.RepoCommand}: Get the bot repo.
  
 /shell: Run commands in Shell (Terminal).
  
@@ -163,23 +158,18 @@ def main():
     ping_handler = CommandHandler(BotCommands.PingCommand, ping,
                                   filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
     restart_handler = CommandHandler(BotCommands.RestartCommand, restart,
-                                     filters=CustomFilters.owner_filter)
+                                     filters=CustomFilters.owner_filter | CustomFilters.sudo_user)
     help_handler = CommandHandler(BotCommands.HelpCommand,
                                   bot_help, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
     stats_handler = CommandHandler(BotCommands.StatsCommand,
                                    stats, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
-    log_handler = CommandHandler(BotCommands.LogCommand, log, filters=CustomFilters.owner_filter)
-    repo_handler = CommandHandler(BotCommands.RepoCommand, repo,
-                                   filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
-    authlist_handler = CommandHandler(BotCommands.AuthListCommand, chat_list, filters=CustomFilters.owner_filter)
+    log_handler = CommandHandler(BotCommands.LogCommand, log, filters=CustomFilters.owner_filter | CustomFilters.sudo_user)
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(ping_handler)
     dispatcher.add_handler(restart_handler)
     dispatcher.add_handler(help_handler)
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(log_handler)
-    dispatcher.add_handler(repo_handler)
-    dispatcher.add_handler(authlist_handler)
     updater.start_polling()
     LOGGER.info("Bot Started!")
     signal.signal(signal.SIGINT, fs_utils.exit_clean_up)

@@ -31,9 +31,8 @@ class AriaDownloadHelper(DownloadHelper):
             gdrive = GoogleDriveHelper(None)
             smsg, button = gdrive.drive_list(sname)
           if smsg:
-              dl.getListener().onDownloadError(f'File is already available in drive Bitch.\nNext time direct BAN.\n\n')
+              dl.getListener().onDownloadError(f'File is already available in drive Bitch.\nNext time Direct BAN.\n\n')
               sendMarkup("Here are the search results: 👇", dl.getListener().bot, dl.getListener().update, button)
-              sendMarkup("Here are the search results:", dl.getListener().bot, dl.getListener().update, button)
               aria2.remove([download])
               return
  

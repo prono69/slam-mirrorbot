@@ -59,7 +59,9 @@ class MirrorListener(listeners.MirrorListeners):
             download = download_dict[self.uid]
             name = download.name()
             size = download.size_raw()
-            m_path = f'{DOWNLOAD_DIR}{self.uid}/{download.name()}'
+            if name is None: # when pyrogram's media.file_name is of NoneType
+                name = os.listdir(f'{DOWNLOAD_DIR}{self.uid}')[0]
+            m_path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
         if self.isTar:
             download.is_archiving = True
             try:
@@ -146,7 +148,7 @@ class MirrorListener(listeners.MirrorListeners):
  
     def onUploadComplete(self, link: str, size):
         with download_dict_lock:
-            msg = f'<b>📂 Filename: </b><code>{download_dict[self.uid].name()}</code>\n<b>📀 Size: </b><code>{size}</code>'
+            msg = f'<b>📂 Filename: </b><code>{download_dict[self.uid].name()}</code>\n\n<b>📀 Size: </b><code>{size}</code>'
             buttons = button_build.ButtonMaker()
             if SHORTENER is not None and SHORTENER_API is not None:
                 surl = requests.get('https://{}/api?api={}&url={}&format=text'.format(SHORTENER, SHORTENER_API, link)).text
