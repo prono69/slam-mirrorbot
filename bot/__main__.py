@@ -61,8 +61,15 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
     buttons.buildbutton("Website", "https://kirito1.ga")
     buttons.buildbutton("Me", "https://t.me/kirito6969")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
-    update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
-
+    LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
+    if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
+        if update.message.chat.type == "private" :
+            sendMessage(f"Hey I'm Alive 🙂", context.bot, update)
+        else :
+            update.effective_message.reply_photo(IMAGE_URL, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
+    else :
+        sendMessage(f"Oops vmro! You are not an Authorized User. ( ⚈̥̥̥̥̥́⌢⚈̥̥̥̥̥̀)", context.bot, update)
+        
 @run_async
 def restart(update, context):
     restart_message = sendMessage("Restarting, Please wait!", context.bot, update)
@@ -153,8 +160,7 @@ def main():
         LOGGER.info('Restarted Successfully!')
         remove('restart.pickle')
 
-    start_handler = CommandHandler(BotCommands.StartCommand, start,
-                                   filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
+    start_handler = CommandHandler(BotCommands.StartCommand, start)
     ping_handler = CommandHandler(BotCommands.PingCommand, ping,
                                   filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)
     restart_handler = CommandHandler(BotCommands.RestartCommand, restart,

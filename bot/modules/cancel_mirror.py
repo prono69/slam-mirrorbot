@@ -1,15 +1,15 @@
 from telegram.ext import CommandHandler, run_async
-
+ 
 from bot import download_dict, dispatcher, download_dict_lock, DOWNLOAD_DIR
 from bot.helper.ext_utils.fs_utils import clean_download
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import *
-
+ 
 from time import sleep
 from bot.helper.ext_utils.bot_utils import getDownloadByGid, MirrorStatus
-
-
+ 
+ 
 @run_async
 def cancel_mirror(update, context):
     args = update.message.text.split(" ", maxsplit=1)
@@ -31,26 +31,30 @@ def cancel_mirror(update, context):
     if len(args) == 1:
         if mirror_message is None or mirror_message.message_id not in keys:
             if BotCommands.MirrorCommand in update.message.text or \
-                    BotCommands.TarMirrorCommand in update.message.text:
+               BotCommands.TarMirrorCommand in update.message.text or \
+               BotCommands.UnzipMirrorCommand in update.message.text:
                 msg = "Mirror already have been cancelled"
                 sendMessage(msg, context.bot, update)
                 return
             else:
-                msg = "Please reply to the /mirror message which was used to start the download or /cancel gid to cancel it!"
+                msg = f"Please reply to the /{BotCommands.MirrorCommand} message which was used to start the download or /{BotCommands.CancelMirror} GID to cancel it!"
                 sendMessage(msg, context.bot, update)
                 return
-    if dl.status() == "Uploading":
-        sendMessage("Upload in Progress, Don't Cancel it.", context.bot, update)
+    if dl.status() == "Uploading...📤":
+        sendMessage("Upload in Progress, You Can't Cancel it.", context.bot, update)
         return
-    elif dl.status() == "Archiving":
-        sendMessage("Archival in Progress, Don't Cancel it.", context.bot, update)
+    elif dl.status() == "Archiving...🔐":
+        sendMessage("Archival in Progress, You Can't Cancel it.", context.bot, update)
+        return
+    elif dl.status() == "Extracting...📂":
+        sendMessage("Extract in Progress, You Can't Cancel it.", context.bot, update)
         return
     else:
         dl.download().cancel_download()
     sleep(1)  # Wait a Second For Aria2 To free Resources.
     clean_download(f'{DOWNLOAD_DIR}{mirror_message.message_id}/')
-
-
+ 
+ 
 @run_async
 def cancel_all(update, context):
     with download_dict_lock:
@@ -62,8 +66,8 @@ def cancel_all(update, context):
                 count += 1
     delete_all_messages()
     sendMessage(f'Cancelled {count} downloads!', context.bot, update)
-
-
+ 
+ 
 cancel_mirror_handler = CommandHandler(BotCommands.CancelMirror, cancel_mirror,
                                        filters=(CustomFilters.authorized_chat | CustomFilters.authorized_user) & CustomFilters.mirror_owner_filter | CustomFilters.sudo_user)
 cancel_all_handler = CommandHandler(BotCommands.CancelAllCommand, cancel_all,
