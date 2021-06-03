@@ -1,23 +1,24 @@
 import shutil, psutil
 import signal
-import pickle
 from pyrogram import idle
-from bot import app
-from os import execl, kill, path, remove
+
+import os
 from sys import executable
 from datetime import datetime
+
 import pytz
 import time
+
 from telegram import ParseMode, BotCommand, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, run_async
-from bot import dispatcher, updater, botStartTime, IMG
+from bot import bot, app, dispatcher, updater, botStartTime, IMG
 from bot.helper.ext_utils import fs_utils
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.message_utils import *
 from bot.helper.telegram_helper import button_build
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.telegram_helper.filters import CustomFilters
-from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage, mediainfo
+from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage, mediainfo, count
 
 now=datetime.now(pytz.timezone('Asia/Kolkata'))
 
@@ -70,16 +71,18 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
     else :
         sendMessage(f"Oops vmro! You are not an Authorized User. ( ⚈̥̥̥̥̥́⌢⚈̥̥̥̥̥̀)", context.bot, update)
         
+        
 @run_async
 def restart(update, context):
     restart_message = sendMessage("Restarting, Please wait!", context.bot, update)
     LOGGER.info(f'Restarting the Bot...')
     # Save restart message object in order to reply to it after restarting
+    with open(".restartmsg", "w") as f:
+        f.truncate(0)
+        f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
     fs_utils.clean_all()
-    with open('restart.pickle', 'wb') as status:
-        pickle.dump(restart_message, status)
-    execl(executable, executable, "-m", "bot")
-
+    os.execl(executable, executable, "-m", "bot")
+    
 
 @run_async
 def ping(update, context):
@@ -106,6 +109,8 @@ def bot_help(update, context):
 /{BotCommands.TarMirrorCommand} [download_url][magnet_link]: Start mirroring and upload the archived (.tar) version of the download
  
 /{BotCommands.CloneCommand}: Copy file/folder to Google Drive
+
+/{BotCommands.CountCommand}: Count file/folders of Gdrive
  
 /{BotCommands.DeleteCommand} [link]: Delete file from Google Drive (Only Owner & Sudo)
  
@@ -153,12 +158,11 @@ def bot_help(update, context):
 def main():
     fs_utils.start_cleanup()
     # Check if the bot is restarting
-    if path.exists('restart.pickle'):
-        with open('restart.pickle', 'rb') as status:
-            restart_message = pickle.load(status)
-        restart_message.edit_text("Restarted Successfully!")
-        LOGGER.info('Restarted Successfully!')
-        remove('restart.pickle')
+    if os.path.isfile(".restartmsg"):
+        with open(".restartmsg") as f:
+            chat_id, msg_id = map(int, f)
+        bot.edit_message_text("Restarted successfully!", chat_id, msg_id)
+        os.remove(".restartmsg")
 
     start_handler = CommandHandler(BotCommands.StartCommand, start)
     ping_handler = CommandHandler(BotCommands.PingCommand, ping,
