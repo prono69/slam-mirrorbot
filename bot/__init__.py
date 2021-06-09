@@ -186,6 +186,22 @@ except KeyError:
     logging.info('UPTOBOX_TOKEN not provided!')
     UPTOBOX_TOKEN = None
 try:
+    VIEW_LINK = getConfig('VIEW_LINK')
+    if VIEW_LINK.lower() == 'true':
+        VIEW_LINK = True
+    else:
+        VIEW_LINK = False
+except KeyError:
+    VIEW_LINK = False
+try:
+    STOP_DUPLICATE_CLONE = getConfig('STOP_DUPLICATE_CLONE')
+    if STOP_DUPLICATE_CLONE.lower() == 'true':
+        STOP_DUPLICATE_CLONE = True
+    else:
+        STOP_DUPLICATE_CLONE = False
+except KeyError:
+    STOP_DUPLICATE_CLONE = False
+try:
     INDEX_URL = getConfig('INDEX_URL')
     if len(INDEX_URL) == 0:
         INDEX_URL = None
@@ -196,15 +212,7 @@ try:
     if len(CLONE_LIMIT) == 0:
         CLONE_LIMIT = None
 except KeyError:
-    CLONE_LIMIT = None    
-try:
-    BUTTON_THREE_NAME = getConfig('BUTTON_THREE_NAME')
-    BUTTON_THREE_URL = getConfig('BUTTON_THREE_URL')
-    if len(BUTTON_THREE_NAME) == 0 or len(BUTTON_THREE_URL) == 0:
-        raise KeyError
-except KeyError:
-    BUTTON_THREE_NAME = None
-    BUTTON_THREE_URL = None
+    CLONE_LIMIT = None
 try:
     BUTTON_FOUR_NAME = getConfig('BUTTON_FOUR_NAME')
     BUTTON_FOUR_URL = getConfig('BUTTON_FOUR_URL')
@@ -221,6 +229,14 @@ try:
 except KeyError:
     BUTTON_FIVE_NAME = None
     BUTTON_FIVE_URL = None
+try:
+    BUTTON_SIX_NAME = getConfig('BUTTON_SIX_NAME')
+    BUTTON_SIX_URL = getConfig('BUTTON_SIX_URL')
+    if len(BUTTON_SIX_NAME) == 0 or len(BUTTON_SIX_URL) == 0:
+        raise KeyError
+except KeyError:
+    BUTTON_SIX_NAME = None
+    BUTTON_SIX_URL = None
 try:
     STOP_DUPLICATE_MIRROR = getConfig('STOP_DUPLICATE_MIRROR')
     if STOP_DUPLICATE_MIRROR.lower() == 'true':

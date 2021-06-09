@@ -6,14 +6,14 @@ from ..status_utils.youtube_dl_download_status import YoutubeDLDownloadStatus
 import logging
 import re
 import threading
-
+ 
 LOGGER = logging.getLogger(__name__)
-
-
+ 
+ 
 class MyLogger:
     def __init__(self, obj):
         self.obj = obj
-
+ 
     def debug(self, msg):
         LOGGER.debug(msg)
         # Hack to fix changing changing extension
@@ -23,16 +23,16 @@ class MyLogger:
             newname = newname.split("/")
             newname = newname[-1]
             self.obj.name = newname
-
+ 
     @staticmethod
     def warning(msg):
         LOGGER.warning(msg)
-
+ 
     @staticmethod
     def error(msg):
         LOGGER.error(msg)
-
-
+ 
+ 
 class YoutubeDLHelper(DownloadHelper):
     def __init__(self, listener):
         super().__init__()
@@ -54,17 +54,17 @@ class YoutubeDLHelper(DownloadHelper):
         self.is_cancelled = False
         self.vid_id = ''
         self.__resource_lock = threading.RLock()
-
+ 
     @property
     def download_speed(self):
         with self.__resource_lock:
             return self.__download_speed
-
+ 
     @property
     def gid(self):
         with self.__resource_lock:
             return self.__gid
-
+ 
     def __onDownloadProgress(self, d):
         if self.is_cancelled:
             raise ValueError("Cancelling Download..")
@@ -90,21 +90,21 @@ class YoutubeDLHelper(DownloadHelper):
                 else:
                     self.download_speed_readable = d['_speed_str']
                     self.downloaded_bytes = d['downloaded_bytes']
-
+ 
     def __onDownloadStart(self):
         with download_dict_lock:
             download_dict[self.__listener.uid] = YoutubeDLDownloadStatus(self, self.__listener)
-
+ 
     def __onDownloadComplete(self):
         self.__listener.onDownloadComplete()
-
+ 
     def onDownloadError(self, error):
         self.__listener.onDownloadError(error)
-
+ 
     def extractMetaData(self, link, qual, name):
-        if "hotstar" or "sonyliv" in link:
+        if "hotstar" in link or "sonyliv" in link:
             self.opts['geo_bypass_country'] = 'IN'
-
+ 
         with YoutubeDL(self.opts) as ydl:
             try:
                 result = ydl.extract_info(link, download=False)
@@ -136,7 +136,7 @@ class YoutubeDLHelper(DownloadHelper):
             self.name = name
             self.vid_id = video.get('id')
         return video
-
+ 
     def __download(self, link):
         try:
             with YoutubeDL(self.opts) as ydl:
@@ -149,7 +149,7 @@ class YoutubeDLHelper(DownloadHelper):
         except ValueError:
             LOGGER.info("Download Cancelled by User!")
             self.onDownloadError("Download Cancelled by User!")
-
+ 
     def add_download(self, link, path, qual, name):
         pattern = '^.*(youtu\.be\/|youtube.com\/)(playlist?)'
         if re.match(pattern, link):
@@ -168,6 +168,7 @@ class YoutubeDLHelper(DownloadHelper):
         else:
             self.opts['outtmpl'] = f"{path}/{self.name}/%(title)s.%(ext)s"
         self.__download(link)
-
+ 
     def cancel_download(self):
         self.is_cancelled = True
+        
