@@ -613,7 +613,7 @@ class GoogleDriveHelper:
             file_id = self.getIdFromUrl(link)
         except (KeyError,IndexError):
             msg = "Google drive ID could not be found in the provided link"
-            return msg
+            return msg, ""
         msg = ""
         LOGGER.info(f"File ID: {file_id}")
         try:
@@ -624,10 +624,11 @@ class GoogleDriveHelper:
             if drive_file['mimeType'] == self.__G_DRIVE_DIR_MIME_TYPE:
                 self.gDrive_directory(**drive_file)
                 msg += f'<b>Filename: </b><code>{name}</code>'
-                msg += f'\n<b>Size: </b>{get_readable_file_size(self.total_bytes)}'
-                msg += f'\n\n<b>Type: </b>Folder'
-                msg += f'\n<b>SubFolders: </b>{self.total_folders}'
-                msg += f'\n<b>Files: </b>{self.total_files}'
+                msg += f'\n<b>Size: </b><code>{get_readable_file_size(self.total_bytes)}</code>'
+                msg += f'\n<b>Type: </b><code>Folder</code>'
+                msg += f'\n<b>SubFolders: </b><code>{self.total_folders}</code>'
+                msg += f'\n<b>Files: </b><code>{self.total_files}</code>'
+                clonesizelimit = self.total_bytes
             else:
                 msg += f'<b>Filename: </b><code>{name}</code>'
                 try:
@@ -638,8 +639,9 @@ class GoogleDriveHelper:
                     self.total_files += 1
                     self.gDrive_file(**drive_file)
                     msg += f'\n<b>Size: </b><code>{get_readable_file_size(self.total_bytes)}</code>'
-                    msg += f'\n\n<b>Type: </b>{typee}'
-                    msg += f'\n<b>Files: </b>{self.total_files}'
+                    msg += f'\n<b>Type: </b><code>{typee}</code>'
+                    msg += f'\n<b>Files: </b><code>{self.total_files}</code>'
+                    clonesizelimit = self.total_bytes
                 except TypeError:
                     pass
         except Exception as err:
@@ -648,8 +650,12 @@ class GoogleDriveHelper:
                 err = err.last_attempt.exception()
             err = str(err).replace('>', '').replace('<', '')
             LOGGER.error(err)
-            return err
-        return msg
+            if "File not found" in str(err):
+                msg = "File not found."
+            else:
+                msg = f"Error.\n{err}"
+            return msg, ""
+        return msg, clonesizelimit
  
     def gDrive_file(self, **kwargs):
         try:

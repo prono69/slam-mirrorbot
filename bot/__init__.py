@@ -192,6 +192,12 @@ try:
 except KeyError:
     INDEX_URL = None
 try:
+    CLONE_LIMIT = getConfig('CLONE_LIMIT')
+    if len(CLONE_LIMIT) == 0:
+        CLONE_LIMIT = None
+except KeyError:
+    CLONE_LIMIT = None    
+try:
     BUTTON_THREE_NAME = getConfig('BUTTON_THREE_NAME')
     BUTTON_THREE_URL = getConfig('BUTTON_THREE_URL')
     if len(BUTTON_THREE_NAME) == 0 or len(BUTTON_THREE_URL) == 0:
