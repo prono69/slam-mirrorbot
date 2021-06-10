@@ -148,7 +148,7 @@ class MirrorListener(listeners.MirrorListeners):
  
     def onUploadComplete(self, link: str, size, files, folders, typ):
         with download_dict_lock:
-            msg = f'<b>📂 Filename: </b><code>{download_dict[self.uid].name()}</code>\n<b>📀 Size: </b><code>{size}</code>'
+            msg = f'<b>📂 Filename: </b><code>{download_dict[self.uid].name()}</code>\n\n<b>📀 Size: </b><code>{size}</code>'
             if os.path.isdir(f'{DOWNLOAD_DIR}/{self.uid}/{download_dict[self.uid].name()}'):
                 msg += '\n\n<b>Type: </b><code>Folder</code>'
                 msg += f' | <b>SubFolders: </b><code>{folders}</code>'
@@ -298,7 +298,6 @@ def _mirror(bot, update, isTar=False, extract=False):
         else:
             mega_dl = MegaDownloadHelper()
             mega_dl.add_download(link, f'{DOWNLOAD_DIR}/{listener.uid}/', listener)
-            sendStatusMessage(update, bot)
     else:
         ariaDlManager.add_download(link, f'{DOWNLOAD_DIR}/{listener.uid}/', listener, name)
         sendStatusMessage(update, bot)
