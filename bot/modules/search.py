@@ -3,18 +3,22 @@ import html
 import asyncio
 import aiohttp
 import feedparser
-from telegram.ext import run_async, CommandHandler
+from telegram.ext import CommandHandler
 from telegram import ParseMode
-from bot import dispatcher
+from bot import dispatcher, IMG
 from urllib.parse import quote as urlencode, urlsplit
 from pyrogram import Client, filters
 from pyrogram.parser import html as pyrogram_html
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from bot.helper import custom_filters
-from bot import app, IMG
+from bot import app
+from bot.helper.telegram_helper.filters import CustomFilters
+ 
 session = aiohttp.ClientSession()
 search_lock = asyncio.Lock()
 search_info = {False: dict(), True: dict()}
+ 
+ 
 async def return_search(query, page=1, sukebei=False):
     page -= 1
     query = query.lower().strip()
@@ -56,23 +60,27 @@ async def return_search(query, page=1, sukebei=False):
             return results[page], len(results), ttl
         except IndexError:
             return '', len(results), ttl
-
+ 
 message_info = dict()
 ignore = set()
+ 
+ 
 @app.on_message(filters.command(['ts', 'nyaa', 'nyaasi']))
 async def nyaa_search(client, message):
     text = message.text.split(' ')
     text.pop(0)
     query = ' '.join(text)
     await init_search(client, message, query, False)
-
+ 
+ 
 @app.on_message(filters.command(['sts', 'sukebei']))
 async def nyaa_search_sukebei(client, message):
     text = message.text.split(' ')
     text.pop(0)
     query = ' '.join(text)
     await init_search(client, message, query, True)
-
+ 
+ 
 async def init_search(client, message, query, sukebei):
     result, pages, ttl = await return_search(query, sukebei=sukebei)
     if not result:
@@ -85,11 +93,12 @@ async def init_search(client, message, query, sukebei):
             buttons
         ]))
         message_info[(reply.chat.id, reply.message_id)] = message.from_user.id, ttl, query, 1, pages, sukebei
-
+ 
+ 
 @app.on_callback_query(custom_filters.callback_data('nyaa_nop'))
 async def nyaa_nop(client, callback_query):
     await callback_query.answer(cache_time=3600)
-
+ 
 callback_lock = asyncio.Lock()
 @app.on_callback_query(custom_filters.callback_data(['nyaa_back', 'nyaa_next']))
 async def nyaa_callback(client, callback_query):
@@ -134,19 +143,20 @@ async def nyaa_callback(client, callback_query):
         if ttl_ended:
             ignore.add(message_identifier)
     await callback_query.answer()
-
-@run_async
+ 
+ 
 def searchhelp(update, context):
     help_string = '''
 • /ts <i>[search query]</i>
 • /nyaa <i>[search query]</i>
 • /nyaasi <i>[search query]</i>
-
-• /sts <i>[search query]</i> (For hentai search 🌚)
-• /sukebei <i>[search query]</i> (For hentai search 🌚)
+ 
+• /sts <i>[search query]</i> <b>(For Hentai search 🌚)</b>
+• /sukebei <i>[search query]</i> <b>(For Hentai search 🌚)</b>
 '''
     update.effective_message.reply_photo(IMG, help_string, parse_mode=ParseMode.HTML)
     
     
-SEARCHHELP_HANDLER = CommandHandler("tshelp", searchhelp)
+SEARCHHELP_HANDLER = CommandHandler("tshelp", searchhelp, filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
 dispatcher.add_handler(SEARCHHELP_HANDLER)
+ 

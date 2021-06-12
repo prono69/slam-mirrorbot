@@ -23,15 +23,15 @@ class AriaDownloadHelper(DownloadHelper):
         self.name = download.name
         sname = download.name
         if STOP_DUPLICATE_MIRROR:
-          if dl.getListener().isTar == True:
+          if self.listener.isTar:
             sname = sname + ".tar"
-          if dl.getListener().extract == True:
+          if self.listener.extract:
             smsg = None
           else:
             gdrive = GoogleDriveHelper(None)
             smsg, button = gdrive.drive_list(sname)
           if smsg:
-              dl.getListener().onDownloadError(f'File is already available in drive Bitch.\nNext time Direct BAN.\n\n')
+              dl.getListener().onDownloadError(f'File is already available in Drive.\nNext time Direct BAN\n\n')
               sendMarkup("Here are the search results: 👇", dl.getListener().bot, dl.getListener().update, button)
               aria2.remove([download])
               return
@@ -102,3 +102,5 @@ class AriaDownloadHelper(DownloadHelper):
         with download_dict_lock:
             download_dict[listener.uid] = AriaDownloadStatus(download.gid, listener)
             LOGGER.info(f"Started: {download.gid} DIR:{download.dir} ")
+        self.listener = listener
+        
