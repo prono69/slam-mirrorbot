@@ -59,15 +59,15 @@ Hey! I am Asuna Chan 😽. I can mirror all your links to Google drive!
 Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
     buttons = button_build.ButtonMaker()
-    buttons.buildbutton("Website", "https://kirito1.ga")
-    buttons.buildbutton("Me", "https://t.me/kirito6969")
+    buttons.buildbutton("🧑🏼‍💻 Website", "https://kirito1.ga")
+    buttons.buildbutton("👽 Me", "https://t.me/kirito6969")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         if update.message.chat.type == "private" :
-            sendMessage(f"Hemlo Master! I'm Alive 🙂", context.bot, update)
+            sendMessage(f"Hemlo Master! Your Sex Slave is here 🤤🍑", context.bot, update)
         else :
-            update.effective_message.reply_photo(IMAGE_URL, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
+            update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
     else :
         sendMessage(f"Oops vmro! You are not an Authorized User. ( ⚈̥̥̥̥̥́⌢⚈̥̥̥̥̥̀)", context.bot, update)
         
