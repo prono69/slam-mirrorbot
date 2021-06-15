@@ -63,9 +63,10 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
     buttons.buildbutton("👽 Me", "https://t.me/kirito6969")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     LOGGER.info('UID: {} - UN: {} - MSG: {}'.format(update.message.chat.id, update.message.chat.username, update.message.text))
+    uptime = get_readable_time((time.time() - botStartTime))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         if update.message.chat.type == "private" :
-            sendMessage(f"Hemlo Master! Your Sex Slave is here 🤤🍑", context.bot, update)
+            sendMessage(f"Hemlo Master! Your Sex Slave is here 🤤🍑\nSince: <code>{uptime}</code>", context.bot, update)
         else :
             update.effective_message.reply_photo(IMG, start_string, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
     else :
@@ -75,7 +76,6 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
 
 def restart(update, context):
     restart_message = sendMessage("Restarting, Please wait!", context.bot, update)
-    LOGGER.info(f'Restarting the Bot...')
     # Save restart message object in order to reply to it after restarting
     with open(".restartmsg", "w") as f:
         f.truncate(0)
