@@ -18,7 +18,7 @@ from bot.helper.telegram_helper.message_utils import *
 from bot.helper.telegram_helper import button_build
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.telegram_helper.filters import CustomFilters
-from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage, mediainfo, count
+from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage, mediainfo, count, config, updates
 
 now=datetime.now(pytz.timezone('Asia/Kolkata'))
 
@@ -54,7 +54,7 @@ def start(update, context):
     start_string = f'''
 Hey! I am Asuna Chan 😽. I can mirror all your links to Google drive!
 
-**ONLY WORKS FOR @kirito6969**
+<b><i>ONLY WORKS FOR @kirito6969</i></b>
 
 Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
@@ -138,13 +138,17 @@ def bot_help(update, context):
  
 /{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports
  
+/{BotCommands.ConfigMenuCommand}: Get Info Menu about bot config (Owner Only).
+ 
+/{BotCommands.UpdateCommand}: Update Bot from Upstream Repo. (Owner Only).
+ 
 /{BotCommands.UsageCommand}: To see Heroku Dyno Stats (Owner & Sudo only).
  
 /{BotCommands.SpeedCommand}: Check Internet Speed of the Host
  
-/shell: Run commands in Shell (Terminal).
+/{BotCommands.MediaInfoCommand}: Get detailed info about replied media (Only for Telegram file).
  
-/mediainfo: Get detailed info about replied media. (Only for telegram files.)
+/{BotCommands.ShellCommand}: Run commands in Shell (Terminal).
  
 /tshelp: Get help for Torrent search module.
  
