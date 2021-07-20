@@ -19,9 +19,7 @@ from bot.helper.telegram_helper import button_build
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
 from .helper.telegram_helper.filters import CustomFilters
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror, clone, watch, shell, eval, anime, stickers, search, delete, speedtest, usage, mediainfo, count, config, updates
-
-now=datetime.now(pytz.timezone('Asia/Kolkata'))
-
+now=datetime.now(pytz.timezone(f'{TIMEZONE}'))
 
 
 def stats(update, context):
@@ -99,32 +97,36 @@ def log(update, context):
 
 
 def bot_help(update, context):
-    help_string = f'''
+    help_string_adm = f'''
 /{BotCommands.HelpCommand}: To get this message
  
-/{BotCommands.MirrorCommand} [download_url][magnet_link]: Start mirroring the link to Google Drive.
- 
-/{BotCommands.UnzipMirrorCommand} [download_url][magnet_link]: Starts mirroring and if downloaded file is any archive, extracts it to Google Drive
+/{BotCommands.MirrorCommand} [download_url][magnet_link]: Start mirroring the link to Google Drive
  
 /{BotCommands.TarMirrorCommand} [download_url][magnet_link]: Start mirroring and upload the archived (.tar) version of the download
  
-/{BotCommands.CloneCommand}: Copy file/folder to Google Drive
-
-/{BotCommands.CountCommand}: Count file/folders of Gdrive
+/{BotCommands.UnzipMirrorCommand} [download_url][magnet_link]: Starts mirroring and if downloaded file is any archive, extracts it to Google Drive
  
-/{BotCommands.DeleteCommand} [link]: Delete file from Google Drive (Only Owner & Sudo)
+/{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive
  
-/{BotCommands.WatchCommand} [youtube-dl supported link]: Mirror through youtube-dl. Click /{BotCommands.WatchCommand} for more help.
+/{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive Links
+ 
+/{BotCommands.DeleteCommand} [drive_url]: Delete file from Google Drive (Only Owner & Sudo)
+ 
+/{BotCommands.WatchCommand} [youtube-dl supported link]: Mirror through youtube-dl. Click /{BotCommands.WatchCommand} for more help
  
 /{BotCommands.TarWatchCommand} [youtube-dl supported link]: Mirror through youtube-dl and tar before uploading
  
 /{BotCommands.CancelMirror}: Reply to the message by which the download was initiated and that download will be cancelled
  
+/{BotCommands.CancelAllCommand}: Cancel all running tasks
+ 
+/{BotCommands.ListCommand} [search term]: Searches the search term in the Google Drive, If found replies with the link
+ 
 /{BotCommands.StatusCommand}: Shows a status of all the downloads
  
-/{BotCommands.ListCommand} [search term]: Searches the search term in the Google Drive, if found replies with the link
- 
 /{BotCommands.StatsCommand}: Show Stats of the machine the bot is hosted on
+ 
+/{BotCommands.PingCommand}: Check how long it takes to Ping the Bot
  
 /{BotCommands.AuthorizeCommand}: Authorize a chat or a user to use the bot (Can only be invoked by Owner & Sudo of the bot)
  
@@ -136,28 +138,74 @@ def bot_help(update, context):
  
 /{BotCommands.RmSudoCommand}: Remove sudo users (Only Owner)
  
+/{BotCommands.RestartCommand}: Restart the bot
+ 
 /{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports
  
-/{BotCommands.ConfigMenuCommand}: Get Info Menu about bot config (Owner Only).
+/{BotCommands.ConfigMenuCommand}: Get Info Menu about bot config (Owner Only)
  
-/{BotCommands.UpdateCommand}: Update Bot from Upstream Repo. (Owner Only).
+/{BotCommands.UpdateCommand}: Update Bot from Upstream Repo (Owner Only)
  
-/{BotCommands.UsageCommand}: To see Heroku Dyno Stats (Owner & Sudo only).
+/{BotCommands.UsageCommand}: To see Heroku Dyno Stats (Owner & Sudo only)
  
 /{BotCommands.SpeedCommand}: Check Internet Speed of the Host
  
-/{BotCommands.MediaInfoCommand}: Get detailed info about replied media (Only for Telegram file).
+/{BotCommands.MediaInfoCommand}: Get detailed info about replied media (Only for Telegram file)
  
-/{BotCommands.ShellCommand}: Run commands in Shell (Terminal).
+/{BotCommands.ShellCommand}: Run commands in Shell (Terminal)
  
-/tshelp: Get help for Torrent search module.
+/{BotCommands.ExecHelpCommand}: Get help for Executor module
  
+/{BotCommands.TsHelpCommand}: Get help for Torrent search module
+
 /weebhelp: Get help for Anime, Manga, and Character module.
  
 /stickerhelp: Get help for Stickers module.
 '''
-    sendMessage(help_string, context.bot, update)
+ 
+    help_string = f'''
+/{BotCommands.HelpCommand}: To get this message
+ 
+/{BotCommands.MirrorCommand} [download_url][magnet_link]: Start mirroring the link to Google Drive
+ 
+/{BotCommands.TarMirrorCommand} [download_url][magnet_link]: Start mirroring and upload the archived (.tar) version of the download
+ 
+/{BotCommands.UnzipMirrorCommand} [download_url][magnet_link]: Starts mirroring and if downloaded file is any archive, extracts it to Google Drive
+ 
+/{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive
+ 
+/{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive Links
+ 
+/{BotCommands.WatchCommand} [youtube-dl supported link]: Mirror through youtube-dl. Click /{BotCommands.WatchCommand} for more help
+ 
+/{BotCommands.TarWatchCommand} [youtube-dl supported link]: Mirror through youtube-dl and tar before uploading
+ 
+/{BotCommands.CancelMirror}: Reply to the message by which the download was initiated and that download will be cancelled
+ 
+/{BotCommands.ListCommand} [search term]: Searches the search term in the Google Drive, If found replies with the link
+ 
+/{BotCommands.StatusCommand}: Shows a status of all the downloads
+ 
+/{BotCommands.StatsCommand}: Show Stats of the machine the bot is hosted on
+ 
+/{BotCommands.PingCommand}: Check how long it takes to Ping the Bot
+ 
+/{BotCommands.SpeedCommand}: Check Internet Speed of the Host
+ 
+/{BotCommands.MediaInfoCommand}: Get detailed info about replied media (Only for Telegram file)
+ 
+/{BotCommands.TsHelpCommand}: Get help for Torrent search module
 
+/weebhelp: Get help for Anime, Manga, and Character module.
+ 
+/stickerhelp: Get help for Stickers module.
+'''
+ 
+    if CustomFilters.sudo_user(update) or CustomFilters.owner_filter(update):
+        sendMessage(help_string_adm, context.bot, update)
+    else:
+        sendMessage(help_string, context.bot, update)
+ 
 
 def main():
     fs_utils.start_cleanup()

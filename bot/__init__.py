@@ -147,6 +147,14 @@ telegraph_token = telegraph.get_access_token()
 LOGGER.info("Telegraph Token Generated: '" + telegraph_token + "'")
 
 try:
+    STATUS_LIMIT = getConfig('STATUS_LIMIT')
+    if len(STATUS_LIMIT) == 0:
+        raise KeyError
+    else:
+        STATUS_LIMIT = int(getConfig('STATUS_LIMIT'))
+except KeyError:
+    STATUS_LIMIT = None
+try:
     MEGA_API_KEY = getConfig('MEGA_API_KEY')
 except KeyError:
     logging.warning('MEGA API KEY not provided!')
@@ -224,6 +232,12 @@ try:
 except KeyError:
     MEGA_LIMIT = None
 try:
+    TAR_UNZIP_LIMIT = getConfig('TAR_UNZIP_LIMIT')
+    if len(TAR_UNZIP_LIMIT) == 0:
+        TAR_UNZIP_LIMIT = None
+except KeyError:
+    TAR_UNZIP_LIMIT = None    
+try:
     BUTTON_FOUR_NAME = getConfig('BUTTON_FOUR_NAME')
     BUTTON_FOUR_URL = getConfig('BUTTON_FOUR_URL')
     if len(BUTTON_FOUR_NAME) == 0 or len(BUTTON_FOUR_URL) == 0:
@@ -295,6 +309,30 @@ try:
 except KeyError:
     SHORTENER = None
     SHORTENER_API = None
+IGNORE_PENDING_REQUESTS = False
+try:
+    if getConfig("IGNORE_PENDING_REQUESTS").lower() == "true":
+        IGNORE_PENDING_REQUESTS = True
+except KeyError:
+    pass
+try:
+    FINISHED_PROGRESS_STR = getConfig('FINISHED_PROGRESS_STR')
+    if len(FINISHED_PROGRESS_STR) == 0:
+        FINISHED_PROGRESS_STR = '░'
+except KeyError:
+    FINISHED_PROGRESS_STR = '░'
+try:
+    UNFINISHED_PROGRESS_STR = getConfig('UNFINISHED_PROGRESS_STR')
+    if len(UNFINISHED_PROGRESS_STR) == 0:
+        UNFINISHED_PROGRESS_STR = '▓'
+except KeyError:
+    UNFINISHED_PROGRESS_STR = '▓'
+try:
+    TIMEZONE = getConfig('TIMEZONE')
+    if len(TIMEZONE) == 0:
+        TIMEZONE = 'Asia/Kolkata'
+except KeyError:
+    TIMEZONE = 'Asia/Kolkata'    
 
 updater = tg.Updater(token=BOT_TOKEN)
 bot = updater.bot

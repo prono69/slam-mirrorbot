@@ -4,9 +4,9 @@ import googleapiclient.discovery, json, progress.bar, glob, sys, argparse, time
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import os, pickle
-
+ 
 stt = time.time()
-
+ 
 parse = argparse.ArgumentParser(
     description='A tool to add service accounts to a shared drive from a folder containing credential files.')
 parse.add_argument('--path', '-p', default='accounts',
@@ -16,25 +16,25 @@ parse.add_argument('--credentials', '-c', default='./credentials.json',
 parse.add_argument('--yes', '-y', default=False, action='store_true', help='Skips the sanity prompt.')
 parsereq = parse.add_argument_group('required arguments')
 parsereq.add_argument('--drive-id', '-d', help='The ID of the Shared Drive.', required=True)
-
+ 
 args = parse.parse_args()
 acc_dir = args.path
 did = args.drive_id
 credentials = glob.glob(args.credentials)
-
+ 
 try:
     open(credentials[0], 'r')
     print('>> Found credentials.')
 except IndexError:
     print('>> No credentials found.')
     sys.exit(0)
-
+ 
 if not args.yes:
     # input('Make sure the following client id is added to the shared drive as Manager:\n' + json.loads((open(
     # credentials[0],'r').read()))['installed']['client_id'])
     input('>> Make sure the **Google account** that has generated credentials.json\n   is added into your Team Drive '
           '(shared drive) as Manager\n>> (Press any key to continue)')
-
+ 
 creds = None
 if os.path.exists('token_sa.pickle'):
     with open('token_sa.pickle', 'rb') as token:
@@ -53,16 +53,16 @@ if not creds or not creds.valid:
     # Save the credentials for the next run
     with open('token_sa.pickle', 'wb') as token:
         pickle.dump(creds, token)
-
+ 
 drive = googleapiclient.discovery.build("drive", "v3", credentials=creds)
 batch = drive.new_batch_http_request()
-
+ 
 aa = glob.glob('%s/*.json' % acc_dir)
 pbar = progress.bar.Bar("Readying accounts", max=len(aa))
 for i in aa:
     ce = json.loads(open(i, 'r').read())['client_email']
     batch.add(drive.permissions().create(fileId=did, supportsAllDrives=True, body={
-        "role": "fileOrganizer",
+        "role": "organizer",
         "type": "user",
         "emailAddress": ce
     }))
@@ -70,7 +70,7 @@ for i in aa:
 pbar.finish()
 print('Adding...')
 batch.execute()
-
+ 
 print('Complete.')
 hours, rem = divmod((time.time() - stt), 3600)
 minutes, sec = divmod(rem, 60)

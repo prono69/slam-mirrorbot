@@ -18,8 +18,9 @@ from pyrogram.parser import html as pyrogram_html
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
  
-from bot import app, dispatcher, IMG
+from bot import app, dispatcher, IMAGE_URL
 from bot.helper import custom_filters
+from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
  
 search_lock = asyncio.Lock()
@@ -78,7 +79,7 @@ async def nyaa_search(client, message):
     query = ' '.join(text)
     await init_search(client, message, query, False)
  
-@app.on_message(filters.command(['sts']))
+@app.on_message(filters.command(['sukebei']))
 async def nyaa_search_sukebei(client, message):
     text = message.text.split(' ')
     text.pop(0)
@@ -272,7 +273,13 @@ RESULT_STR_TGX = (
     "➲Seeders: {Seeders} || ➲Leechers: {Leechers}"
 )
 RESULT_STR_YTS = (
-    "➲Name: `{Name}`"
+    "➲Name: `{Name}`\n"
+    "➲Released on: {ReleasedDate}\n"
+    "➲Genre: {Genre}\n"
+    "➲Rating: {Rating}\n"
+    "➲Likes: {Likes}\n"
+    "➲Duration: {Runtime}\n"
+    "➲Language: {Language}"
 )
 RESULT_STR_EZTV = (
     "➲Name: `{Name}`\n"
@@ -312,20 +319,19 @@ for command, value in torrents_dict.items():
  
 def searchhelp(update, context):
     help_string = '''
-• /nyaa <i>[search query]</i>
-• /sts <i>[search query] - (For Hentai 🌚)</i>
-
-• /1337x <i>[search query]</i>
-• /piratebay <i>[search query]</i>
-• /tgx <i>[search query]</i>
-• /yts <i>[search query]</i>
-• /eztv <i>[search query]</i>
-• /torlock <i>[search query]</i>
-• /rarbg <i>[search query]</i>
-• /ts <i>[search query]</i>
+• <code>/nyaa</code> <i>[search query]</i>
+• <code>/sukebei</code> <i>[search query] - (For Hentai Only 🌚)</i>
+• <code>/1337x</code> <i>[search query]</i>
+• <code>/piratebay</code> <i>[search query]</i>
+• <code>/tgx</code> <i>[search query]</i>
+• <code>/yts</code> <i>[search query]</i>
+• <code>/eztv</code> <i>[search query]</i>
+• <code>/torlock</code> <i>[search query]</i>
+• <code>/rarbg</code> <i>[search query]</i>
+• <code>/ts</code> <i>[search query]</i>
 '''
-    update.effective_message.reply_photo(IMG, help_string, parse_mode=ParseMode.HTML)
+    update.effective_message.reply_photo(IMAGE_URL, help_string, parse_mode=ParseMode.HTML)
     
     
-SEARCHHELP_HANDLER = CommandHandler("tshelp", searchhelp, filters=(CustomFilters.authorized_chat | CustomFilters.authorized_user) & CustomFilters.mirror_owner_filter, run_async=True)
+SEARCHHELP_HANDLER = CommandHandler(BotCommands.TsHelpCommand, searchhelp, filters=(CustomFilters.authorized_chat | CustomFilters.authorized_user) & CustomFilters.mirror_owner_filter, run_async=True)
 dispatcher.add_handler(SEARCHHELP_HANDLER)
