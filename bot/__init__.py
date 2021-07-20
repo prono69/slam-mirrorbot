@@ -153,7 +153,7 @@ try:
     else:
         STATUS_LIMIT = int(getConfig('STATUS_LIMIT'))
 except KeyError:
-    STATUS_LIMIT = None
+    STATUS_LIMIT = 2
 try:
     MEGA_API_KEY = getConfig('MEGA_API_KEY')
 except KeyError:
@@ -318,21 +318,21 @@ except KeyError:
 try:
     FINISHED_PROGRESS_STR = getConfig('FINISHED_PROGRESS_STR')
     if len(FINISHED_PROGRESS_STR) == 0:
-        FINISHED_PROGRESS_STR = '░'
+        FINISHED_PROGRESS_STR = '▓'
 except KeyError:
-    FINISHED_PROGRESS_STR = '░'
+    FINISHED_PROGRESS_STR = '▓'
 try:
     UNFINISHED_PROGRESS_STR = getConfig('UNFINISHED_PROGRESS_STR')
     if len(UNFINISHED_PROGRESS_STR) == 0:
-        UNFINISHED_PROGRESS_STR = '▓'
+        UNFINISHED_PROGRESS_STR = '░'
 except KeyError:
-    UNFINISHED_PROGRESS_STR = '▓'
+    UNFINISHED_PROGRESS_STR = '░'
 try:
     TIMEZONE = getConfig('TIMEZONE')
     if len(TIMEZONE) == 0:
         TIMEZONE = 'Asia/Kolkata'
 except KeyError:
-    TIMEZONE = 'Asia/Kolkata'    
+    TIMEZONE = 'Asia/Kolkata'
 
 updater = tg.Updater(token=BOT_TOKEN)
 bot = updater.bot
