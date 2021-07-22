@@ -18,7 +18,7 @@ from pyrogram.parser import html as pyrogram_html
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
  
-from bot import app, dispatcher, IMG
+from bot import app, dispatcher, bot, IMG
 from bot.helper import custom_filters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -72,14 +72,14 @@ async def return_search(query, page=1, sukebei=False):
 message_info = dict()
 ignore = set()
  
-@app.on_message(filters.command(['nyaa']))
+@app.on_message(filters.command(['nyaasi', f'nyaasi@{bot.username}']))
 async def nyaa_search(client, message):
     text = message.text.split(' ')
     text.pop(0)
     query = ' '.join(text)
     await init_search(client, message, query, False)
  
-@app.on_message(filters.command(['sukebei']))
+@app.on_message(filters.command(['sukebei', f'sukebei@{bot.username}']))
 async def nyaa_search_sukebei(client, message):
     text = message.text.split(' ')
     text.pop(0)
@@ -166,7 +166,7 @@ class TorrentSearch:
         self.source = source.rstrip('/')
         self.RESULT_STR = result_str
  
-        app.add_handler(MessageHandler(self.find, filters.command([command])))
+        app.add_handler(MessageHandler(self.find, filters.command([command, f'{self.command}@{bot.username}'])))
         app.add_handler(CallbackQueryHandler(self.previous, filters.regex(f"{self.command}_previous")))
         app.add_handler(CallbackQueryHandler(self.delete, filters.regex(f"{self.command}_delete")))
         app.add_handler(CallbackQueryHandler(self.next, filters.regex(f"{self.command}_next")))
