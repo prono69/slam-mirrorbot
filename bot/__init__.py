@@ -87,11 +87,28 @@ download_dict = {}
 # Stores list of users and chats the bot is authorized to use in
 AUTHORIZED_CHATS = set()
 SUDO_USERS = set()
+if os.path.exists('authorized_chats.txt'):
+    with open('authorized_chats.txt', 'r+') as f:
+        lines = f.readlines()
+        for line in lines:
+            AUTHORIZED_CHATS.add(int(line.split()[0]))
+if os.path.exists('sudo_users.txt'):
+    with open('sudo_users.txt', 'r+') as f:
+        lines = f.readlines()
+        for line in lines:
+            SUDO_USERS.add(int(line.split()[0]))
 try:
     achats = getConfig('AUTHORIZED_CHATS')
     achats = achats.split(" ")
     for chats in achats:
         AUTHORIZED_CHATS.add(int(chats))
+except:
+    pass
+try:
+    schats = getConfig('SUDO_USERS')
+    schats = schats.split(" ")
+    for chats in schats:
+        SUDO_USERS.add(int(chats))
 except:
     pass
   
@@ -198,21 +215,13 @@ try:
 except KeyError:
     VIEW_LINK = False
 try:
-    STOP_DUPLICATE_CLONE = getConfig('STOP_DUPLICATE_CLONE')
-    if STOP_DUPLICATE_CLONE.lower() == 'true':
-        STOP_DUPLICATE_CLONE = True
+    STOP_DUPLICATE = getConfig('STOP_DUPLICATE')
+    if STOP_DUPLICATE.lower() == 'true':
+        STOP_DUPLICATE = True
     else:
-        STOP_DUPLICATE_CLONE = False
+        STOP_DUPLICATE = False
 except KeyError:
-    STOP_DUPLICATE_CLONE = False
-try:
-    STOP_DUPLICATE_MEGA = getConfig('STOP_DUPLICATE_MEGA')
-    if STOP_DUPLICATE_MEGA.lower() == 'true':
-        STOP_DUPLICATE_MEGA = True
-    else:
-        STOP_DUPLICATE_MEGA = False
-except KeyError:
-    STOP_DUPLICATE_MEGA = False
+    STOP_DUPLICATE = False
 try:
     INDEX_URL = getConfig('INDEX_URL')
     if len(INDEX_URL) == 0:
@@ -261,14 +270,6 @@ try:
 except KeyError:
     BUTTON_SIX_NAME = None
     BUTTON_SIX_URL = None
-try:
-    STOP_DUPLICATE_MIRROR = getConfig('STOP_DUPLICATE_MIRROR')
-    if STOP_DUPLICATE_MIRROR.lower() == 'true':
-        STOP_DUPLICATE_MIRROR = True
-    else:
-        STOP_DUPLICATE_MIRROR = False
-except KeyError:
-    STOP_DUPLICATE_MIRROR = False
 try:
     IS_TEAM_DRIVE = getConfig('IS_TEAM_DRIVE')
     if IS_TEAM_DRIVE.lower() == 'true':
